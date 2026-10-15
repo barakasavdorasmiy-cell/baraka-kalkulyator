@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baraka — Muddatli to'lov kalkulyatori</title>
+<style>
+:root{--navy:#00287d;--blue-l:#e8edf7;--yellow:#fff2b3;--cream:#fdf4d6;--green:#0a7a3d;--red:#b3261e;--bg:#f4f6fb;--text:#1b1f2a;--card:#fff;--line:#d5dcec}
+@media (prefers-color-scheme:dark){:root{--bg:#10141f;--card:#181e2d;--text:#e8ebf3;--blue-l:#223055;--line:#2d3957;--cream:#2a2a1c;--yellow:#4a4220}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 16px}
+h1{font-size:20px;line-height:1.2;color:var(--navy);margin:0;letter-spacing:.3px}
+@media (prefers-color-scheme:dark){h1{color:#9fb8ff}}
+.admin-btn{font-size:12px;background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 10px;cursor:pointer;opacity:.7}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.bar{background:var(--navy);color:#fff;font-weight:700;padding:10px 14px;font-size:14px}
+.pad{padding:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:13px;margin-bottom:4px;font-weight:600}
+.inp{display:flex;align-items:center;background:var(--yellow);border:1.5px solid #e3c85a;border-radius:8px;overflow:hidden}
+.inp input{flex:1;min-width:0;border:0;background:transparent;padding:11px 12px;font-size:17px;font-weight:700;color:#0000cc;outline:none}
+@media (prefers-color-scheme:dark){.inp input{color:#9bb0ff}}
+.inp span{padding:0 12px;font-weight:700;opacity:.7}
+.sum{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line)}
+.sum div{background:var(--cream);padding:10px 14px}
+.sum small{display:block;font-size:12px;opacity:.75}
+.sum b{font-size:18px;color:var(--navy)}
+@media (prefers-color-scheme:dark){.sum b{color:#9fb8ff}}
+.warn{background:#fdecea;color:var(--red);padding:10px 14px;font-weight:600;font-size:14px;display:none}
+table{width:100%;border-collapse:collapse}
+th{background:var(--blue-l);color:var(--navy);font-size:12.5px;text-align:right;padding:9px 10px}
+@media (prefers-color-scheme:dark){th{color:#cbd8ff}}
+th:first-child,td:first-child{text-align:left}
+td{padding:11px 10px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:15px}
+td.m{background:var(--navy);color:#fff;font-weight:700}
+td.s{color:var(--green);font-weight:700}
+.scroll{overflow-x:auto}
+.adm{display:none}
+body.is-admin .adm{display:table-cell}
+td.adm{color:#7a4a00;background:#fff7e6}
+th.adm{background:#ffe9bd;color:#7a4a00}
+.note{font-size:12px;opacity:.7;padding:0 4px 16px}
+/* admin panel */
+#panel{display:none}
+body.is-admin #panel{display:block}
+.rates{width:100%}
+.rates input{width:100%;padding:8px;font-size:15px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);text-align:right}
+.rates td,.rates th{padding:6px}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.sec{background:transparent;color:var(--text);border:1px solid var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.msg{font-size:13px;margin-left:6px}
+dialog{border:0;border-radius:12px;padding:20px;background:var(--card);color:var(--text);width:min(92vw,340px)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog input{width:100%;padding:10px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);margin:8px 0}
+.field{margin-bottom:10px}
+.field label{font-weight:500}
+.field input{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text);font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MUDDATLI TO'LOV<br>KALKULYATORI</h1>
+    <button class="admin-btn" id="adminBtn">Admin</button>
+  </header>
+
+  <div class="card">
+    <div class="bar">KIRITISH (sariq kataklar)</div>
+    <div class="pad">
+      <div class="grid">
+        <div><label>Narx (so'mda)</label><div class="inp"><input id="priceUzs" inputmode="numeric" placeholder="0" autocomplete="off"><span>so'm</span></div></div>
+        <div><label>Narx (dollarda)</label><div class="inp"><input id="priceUsd" inputmode="decimal" placeholder="0" autocomplete="off"><span>$</span></div></div>
+        <div><label>Oldindan to'lov (%)</label><div class="inp"><input id="prepayPct" inputmode="decimal" placeholder="0" autocomplete="off"><span>%</span></div></div>
+        <div><label>Oldindan to'lov summasi (so'm)</label><div class="inp"><input id="prepaySum" inputmode="numeric" placeholder="0" autocomplete="off"><span>so'm</span></div></div>
+      </div>
+    </div>
+    <div class="warn" id="warn"></div>
+    <div class="sum">
+      <div><small>Tan narx (so'm)</small><b id="cost">-</b></div>
+      <div><small>Oldindan to'lov (so'm)</small><b id="prepay">-</b></div>
+      <div><small>Oldindan to'lov (%)</small><b id="prepayPctOut">-</b></div>
+      <div><small>Qolgan summa (so'm)</small><b id="remaining">-</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="bar">1. OLDINDAN TO'LOVSIZ</div>
+    <div class="scroll"><table id="t1"><thead><tr><th>Muddat</th><th>Oylik to'lov</th><th>Jami to'lov</th>
+      <th class="adm">Foyda (so'm)</th><th class="adm">Foyda %</th><th class="adm">Foyda ($)</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="bar">2. OLDINDAN TO'LOV BILAN</div>
+    <div class="scroll"><table id="t2"><thead><tr><th>Muddat</th><th>Oylik to'lov</th><th>Jami to'lov</th><th>Mijoz tejaydi</th>
+      <th class="adm">Foyda (so'm)</th><th class="adm">Foyda %</th><th class="adm">Foyda ($)</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="note">Oylik to'lov butun so'mga yaxlitlanadi, jami = oylik × muddat. Faqat sariq kataklar to'ldiriladi.</div>
+
+  <!-- ADMIN PANEL -->
+  <div id="panel">
+    <div class="card">
+      <div class="bar" style="background:#7a4a00">ADMIN — foiz stavkalar (mijoz ko'rmaydi)</div>
+      <div class="pad">
+        <div class="grid">
+          <div class="field"><label>Dollar kursi (so'm)</label><input id="cfgRate" inputmode="numeric"></div>
+          <div class="field"><label>Dollar narxga ustama (%)</label><input id="cfgMarkup" inputmode="decimal"></div>
+        </div>
+        <div class="scroll"><table class="rates" id="ratesTbl">
+          <thead><tr><th>Muddat (oy)</th><th>Oldindan to'lovsiz (% jami)</th><th>Oldindan to'lov bilan (% jami)</th><th>Oyiga (%)</th></tr></thead>
+          <tbody></tbody></table></div>
+        <div class="row"><button class="btn" id="saveCfg">Saqlash</button><span class="msg" id="cfgMsg"></span></div>
+        <details style="margin-top:12px;font-size:13px"><summary style="cursor:pointer">Bepul hostingda doimiy saqlash (RATES_JSON)</summary>
+          <p style="opacity:.8">Render kabi bepul hostingda server uxlab/qayta yonganda panelda saqlangan stavkalar o'chib ketadi. Doimiy qilish uchun quyidagi matnni hostingdagi <b>RATES_JSON</b> o'zgaruvchisiga qo'ying.</p>
+          <textarea id="ratesJson" readonly rows="4" style="width:100%;font-family:monospace;font-size:12px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)"></textarea>
+          <button class="btn sec" id="copyJson" type="button">Nusxa olish</button>
+        </details>
+        <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+        <label>Parolni almashtirish</label>
+        <div class="grid">
+          <div class="field"><input id="pwOld" type="password" placeholder="Eski parol"></div>
+          <div class="field"><input id="pwNew" type="password" placeholder="Yangi parol (kamida 8 belgi)"></div>
+        </div>
+        <div class="row"><button class="btn sec" id="savePw">Parolni yangilash</button><span class="msg" id="pwMsg"></span>
+        <button class="btn sec" id="logout" style="margin-left:auto">Chiqish</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="loginForm">
+    <b>Admin kirish</b>
+    <input id="pw" type="password" placeholder="Parol" autocomplete="current-password">
+    <div id="loginErr" style="color:var(--red);font-size:13px;min-height:18px"></div>
+    <div class="row"><button class="btn" value="ok">Kirish</button><button class="btn sec" value="cancel" formnovalidate>Bekor</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n ? Math.round(n).toLocaleString('ru-RU') : '-';
+const fmtUsd = (n) => n ? n.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}) : '-';
+const pct = (n, d=1) => n ? (n*100).toLocaleString('ru-RU', {maximumFractionDigits:d}) + '%' : '-';
+let token = sessionStorage.getItem('adm') || '';
+let timer;
+
+function api(path, method='GET', body) {
+  const h = {'Content-Type':'application/json'};
+  if (token) h['x-admin-token'] = token;
+  return fetch(path, {method, headers:h, body: body ? JSON.stringify(body) : undefined})
+    .then(async r => { const j = await r.json(); if (!r.ok) throw Object.assign(new Error(j.error||'Xato'), {status:r.status}); return j; });
+}
+
+// raqam maydonlari: probel bilan ajratib ko'rsatish
+['priceUzs','prepaySum'].forEach(id => $(id).addEventListener('input', e => {
+  const d = e.target.value.replace(/\D/g,''); e.target.value = d ? Number(d).toLocaleString('ru-RU') : '';
+}));
+['priceUzs','priceUsd','prepayPct','prepaySum'].forEach(id => $(id).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(recalc, 120); }));
+
+async function recalc() {
+  const body = {priceUzs:$('priceUzs').value, priceUsd:$('priceUsd').value.replace(',','.'), prepayPct:$('prepayPct').value.replace(',','.'), prepaySum:$('prepaySum').value};
+  let r;
+  try { r = await api('/api/calc','POST',body); }
+  catch(e){ if (e.status===401) setAdmin(false); return; }
+  $('warn').style.display = r.warning ? 'block' : 'none';
+  $('warn').textContent = r.warning ? '⚠ ' + r.warning : '';
+  $('cost').textContent = fmt(r.cost);
+  $('prepay').textContent = fmt(r.prepay);
+  $('prepayPctOut').textContent = pct(r.prepayPct);
+  $('remaining').textContent = fmt(r.remaining);
+  const a = !!token;
+  $('t1').tBodies[0].innerHTML = r.rows.map(x => `<tr><td>${x.months} oy</td><td class="m">${fmt(x.monthly1)}</td><td>${fmt(x.total1)}</td>`+
+    (a?`<td class="adm">${fmt(x.profit1)}</td><td class="adm">${pct(x.profit1Pct)}</td><td class="adm">${fmtUsd(x.profit1Usd)}</td>`:'')+`</tr>`).join('');
+  $('t2').tBodies[0].innerHTML = r.rows.map(x => `<tr><td>${x.months} oy</td><td class="m">${fmt(x.monthly2)}</td><td>${fmt(x.total2)}</td><td class="s">${fmt(x.saving)}</td>`+
+    (a?`<td class="adm">${fmt(x.profit2)}</td><td class="adm">${pct(x.profit2Pct)}</td><td class="adm">${fmtUsd(x.profit2Usd)}</td>`:'')+`</tr>`).join('');
+}
+
+// ---------- admin ----------
+function setAdmin(on) {
+  document.body.classList.toggle('is-admin', on);
+  $('adminBtn').textContent = on ? 'Admin ✓' : 'Admin';
+  if (!on) { token=''; sessionStorage.removeItem('adm'); }
+  recalc();
+}
+$('adminBtn').onclick = () => { if (token) $('panel').scrollIntoView({behavior:'smooth'}); else { $('pw').value=''; $('loginErr').textContent=''; $('dlg').showModal(); $('pw').focus(); } };
+$('loginForm').addEventListener('submit', async (e) => {
+  if (e.submitter && e.submitter.value === 'cancel') return;
+  e.preventDefault();
+  try {
+    const r = await api('/api/login','POST',{password:$('pw').value});
+    token = r.token; sessionStorage.setItem('adm', token);
+    $('dlg').close(); await loadCfg(); setAdmin(true);
+  } catch(err){ $('loginErr').textContent = err.message; }
+});
+$('logout').onclick = () => setAdmin(false);
+
+function ratesRow(t) {
+  const tr = document.createElement('tr');
+  const val = (v) => (Math.round(v*100000)/1000).toString();
+  tr.innerHTML = `<td><input class="mo" value="${t.months}"></td><td><input class="np" value="${val(t.noPrepay)}"></td><td><input class="wp" value="${val(t.withPrepay)}"></td><td class="per" style="font-size:12px;opacity:.7;text-align:right"></td>`;
+  return tr;
+}
+function updPer() {
+  document.querySelectorAll('#ratesTbl tbody tr').forEach(tr => {
+    const m = Number(tr.querySelector('.mo').value), a = Number(tr.querySelector('.np').value.replace(',','.')), b = Number(tr.querySelector('.wp').value.replace(',','.'));
+    tr.querySelector('.per').textContent = m>0 ? `${(a/m).toFixed(2)}% / ${(b/m).toFixed(2)}%` : '';
+  });
+}
+async function loadCfg() {
+  const c = await api('/api/admin/config');
+  $('cfgRate').value = c.usdRate; $('cfgMarkup').value = c.usdMarkup*100;
+  const tb = $('ratesTbl').tBodies[0]; tb.innerHTML='';
+  c.terms.forEach(t => tb.appendChild(ratesRow(t)));
+  updPer();
+  $('ratesJson').value = JSON.stringify({usdRate:c.usdRate, usdMarkup:c.usdMarkup, terms:c.terms});
+}
+$('copyJson').onclick = () => { $('ratesJson').select(); navigator.clipboard && navigator.clipboard.writeText($('ratesJson').value); };
+$('ratesTbl').addEventListener('input', updPer);
+$('saveCfg').onclick = async () => {
+  const n = (s) => Number(String(s).replace(',','.'));
+  const terms = [...document.querySelectorAll('#ratesTbl tbody tr')].map(tr => ({months:n(tr.querySelector('.mo').value), noPrepay:n(tr.querySelector('.np').value)/100, withPrepay:n(tr.querySelector('.wp').value)/100}));
+  try {
+    await api('/api/admin/config','PUT',{usdRate:n($('cfgRate').value), usdMarkup:n($('cfgMarkup').value)/100, terms});
+    $('cfgMsg').style.color='var(--green)'; $('cfgMsg').textContent='Saqlandi ✓'; await loadCfg(); recalc();
+  } catch(e){ $('cfgMsg').style.color='var(--red)'; $('cfgMsg').textContent=e.message; }
+};
+$('savePw').onclick = async () => {
+  try {
+    await api('/api/admin/password','POST',{oldPassword:$('pwOld').value,newPassword:$('pwNew').value});
+    $('pwMsg').style.color='var(--green)'; $('pwMsg').textContent='Yangilandi. Qayta kiring.'; setTimeout(()=>setAdmin(false),1200);
+  } catch(e){ $('pwMsg').style.color='var(--red)'; $('pwMsg').textContent=e.message; }
+};
+
+(async () => { if (token) { try { await loadCfg(); document.body.classList.add('is-admin'); $('adminBtn').textContent='Admin ✓'; } catch { token=''; sessionStorage.removeItem('adm'); } } recalc(); })();
+</script>
+</body>
+</html>
